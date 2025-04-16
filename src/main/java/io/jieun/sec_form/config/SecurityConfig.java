@@ -46,20 +46,29 @@ public class SecurityConfig {
 //                        }
 //                )
                 .formLogin(Customizer.withDefaults())
-//                .logout(Customizer.withDefaults())
-                .logout( logout -> {
-                    logout.logoutUrl("/signout")
-                            .logoutSuccessUrl("/")
-                            .clearAuthentication(true)
-                            .invalidateHttpSession(true) //우리 서버에서 갖고있는 httpsession을 무효화 시키겠다
-                            .deleteCookies("JSESSIONID");
-                })
+                .logout(Customizer.withDefaults())
+//                .logout( logout -> {
+//                    logout.logoutUrl("/signout")
+//                            .logoutSuccessUrl("/")
+//                            .clearAuthentication(true)
+//                            .invalidateHttpSession(true) //우리 서버에서 갖고있는 httpsession을 무효화 시키겠다
+//                            .deleteCookies("JSESSIONID");
+//                })
                 .authorizeHttpRequests(
                         auth -> {
                             auth.requestMatchers("/signup", "/signin")
-                                    .anonymous()
+                                        .anonymous()
                                     .requestMatchers("/user/**")
-                                    .hasRole("MEMBER")//hasRole로 권한검사를 할 수 있다, 이걸 가지고 있어야 인가를 가질 수 있음
+                                        //.hasRole("MEMBER")//hasRole로 권한검사를 할 수 있다, 이걸 가지고 있어야 인가를 가질 수 있음
+                                        //.hasAnyRole("MEMBER", "MANAGER", "ADMIN" )
+                                        .hasAnyAuthority("MEMBER", "MANAGER", "ADMIN")
+                                    .requestMatchers("/manager/**")
+                                        //.hasRole("MANAGER")//MANAGER이라는걸 검사하는게 아니라 ROLE_MANAGER를 검사한다.
+                                        //.hasAnyRole("MANAGER", "ADMIN") //ROLE_MEMAGER, ROLE_ADMIN
+                                        .hasAnyAuthority("MANAGER", "ADMIN")
+                                    .requestMatchers("/admin/**")
+                                        //.hasRole("ADMIN")
+                                        .hasAuthority("ADMIN")//얘는 진짜 문자열 "ADMIN"을 검사함 앞에 ROLE_이 붙으면 안됨
                                     .anyRequest()
                                     //.denyAll(); //아예 접근 못하게 막고 싶을때 사용
                                      .authenticated();
@@ -69,6 +78,7 @@ public class SecurityConfig {
     }
 
     //인가
+    /*
     @Bean
     public UserDetailsService userDetailsService() {
         InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
@@ -82,10 +92,13 @@ public class SecurityConfig {
         manager.createUser(
                 User.withUsername("user")
                         .password(encoded)
-                        //.roles()
+                        //.roles("ADMIN") //"ROLE_ADMIN"
+                        //.authorities("ROLE_ADMIN")
+                        .authorities("ADMIN")
                         .build()
         );
         return manager;
     }
+     */
 
 }
